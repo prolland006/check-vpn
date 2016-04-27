@@ -1,0 +1,13 @@
+aller dans le répertoire src
+
+git init
+git config user.name prolland006
+git config user.mail prolland006@users.sourceforge.net
+git remote add origin ssh://prolland006@git.code.sf.net/p/check-vpn/code
+git pull origin master
+git push origin master
+git commit 
+<ESC> puis :wq
+
+//delete a file
+git rm Test.java
