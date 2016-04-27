@@ -11,3 +11,9 @@ git commit
 
 //delete a file
 git rm Test.java
+
+//interface graphique
+gitk
+
+git log
+git status
