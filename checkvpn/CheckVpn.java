@@ -3,12 +3,16 @@ package CheckVpn;
 import javax.swing.*;
 import java.awt.Component;
 import java.awt.BorderLayout;
+import java.awt.GridBagLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.Insets;
 import java.io.*;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -19,11 +23,12 @@ import java.net.URL;
 import java.io.Serializable;
 import java.util.StringTokenizer;
 import CheckVpn.common.SplashWindowFrame;
+import java.awt.ComponentOrientation;
 
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.0";
+static final String version = "1.0.1";
 
 SplashWindowFrame sp;
 JTextArea informationArea;
@@ -32,6 +37,8 @@ JTextField textFieldSoft;
 JFrame frame;
 JLabel jlbStatus;
 JPanel statusPanel;
+JPanel ipPanel;
+JButton jbUpdateIp;
 
 Timer timer;
 Timer timerSplashScreen;
@@ -152,6 +159,14 @@ CInfoVPN infoVPN;
       frame.setVisible(true);
   }
   
+  void updateIp_actionPerformed(ActionEvent e) {
+    try {
+        this.textFieldIp.setText(CheckVpn.getMyExternalIp());
+    } catch (Exception exc) {
+        exc.printStackTrace();
+    }
+  }
+  
   void save_actionPerformed(ActionEvent e) {
       this.infoVPN.stIp=this.textFieldIp.getText();
       this.infoVPN.stSoftware=this.textFieldSoft.getText();
@@ -208,6 +223,7 @@ CInfoVPN infoVPN;
     frame.setLocation( 50, 50);
     frame.setVisible(false);
     
+    JPanel ipPanel=new JPanel();
     JPanel jpnCenter=new JPanel();
     JButton startButton=new JButton("START");
     startButton.addActionListener(new java.awt.event.ActionListener() {
@@ -231,7 +247,8 @@ CInfoVPN infoVPN;
     jpnCenter.add(startButton);
      
     JLabel labelIp= new JLabel("Your External Ip without VPN");
-    //labelIp.setPreferredSize(new Dimension(200, 22));
+    labelIp.setPreferredSize(new Dimension(100, 22));
+    labelIp.setMaximumSize(new Dimension(100, 22));
 
     textFieldIp= new JTextField("999.999.999.999");
     textFieldIp.setPreferredSize(new Dimension(100, 22));
@@ -241,10 +258,14 @@ CInfoVPN infoVPN;
 
    
     JLabel labelSoft= new JLabel("Software to stop when no VPN");
-    //labelSoft.setPreferredSize(new Dimension(200, 22));
 
     textFieldSoft= new JTextField("firefow.exe;utorrent.exe");
     textFieldSoft.setText(this.infoVPN.stSoftware);
+    
+    JButton jbUpdateIp=new JButton("Update Ip");
+    jbUpdateIp.addActionListener(
+      new ActionListener() {public void actionPerformed(ActionEvent e) {updateIp_actionPerformed(e);}}
+    );    
 
     JButton jbValidSoft=new JButton("Save settings");
     jbValidSoft.addActionListener(
@@ -255,6 +276,15 @@ CInfoVPN infoVPN;
     jlbStatus = new JLabel("VPN KO");
     statusPanel = new JPanel();
     statusPanel.add(jlbStatus);
+    statusPanel.setPreferredSize(new Dimension(100, 22));
+    statusPanel.setMaximumSize(new Dimension(100, 22));
+    
+    FlowLayout flowLay=new FlowLayout(FlowLayout.LEADING);
+    flowLay.setHgap(0);
+    ipPanel.setLayout(flowLay);
+    ipPanel.add(textFieldIp);
+    ipPanel.add(jbUpdateIp);
+    ipPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
     
     vpnStopped();
 
@@ -268,18 +298,18 @@ CInfoVPN infoVPN;
             .addComponent(labelIp)
             .addComponent(labelSoft))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(textFieldIp)
+            .addComponent(ipPanel)
             .addComponent(textFieldSoft))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(jbValidSoft)
-            .addComponent(statusPanel))
+            .addComponent(statusPanel)
+            .addComponent(jbValidSoft))
     );    
     gpLayout.setVerticalGroup(gpLayout.createSequentialGroup()
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
             .addComponent(labelIp)
-            .addComponent(textFieldIp)
+            .addComponent(ipPanel)
             .addComponent(statusPanel))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
             .addComponent(labelSoft)
             .addComponent(textFieldSoft)
             .addComponent(jbValidSoft))
