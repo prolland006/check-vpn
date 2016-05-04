@@ -4,6 +4,7 @@ Summary
 -------
 This tool check every 2 seconds your external ip adress, if it changes (vpn fall down for example) it stops one or several programs.
 Setting
+-------
 - You need to install JAVA on your computer
 - Download the .jar
 - Double click on it
