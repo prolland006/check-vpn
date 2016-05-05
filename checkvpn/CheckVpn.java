@@ -30,7 +30,7 @@ import java.lang.Boolean;
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.2";
+static final String version = "1.0.3";
 
 SplashWindowFrame sp;
 JFrame frame;
@@ -224,6 +224,11 @@ CInfoVPN infoVPN;
         }
   }
   
+  public boolean isUnix() {
+        String OS = System.getProperty("os.name").toLowerCase();
+        return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 );		
+  }
+  
   void Timer_actionPerformed(ActionEvent e) {
         String tok;
         try {
@@ -239,7 +244,11 @@ CInfoVPN infoVPN;
                 while (s.hasMoreTokens()) {
                     tok=s.nextToken();
                     trace("Kill process "+tok+"...");
-                    rt.exec("taskkill /f /IM "+tok+" /T");
+                    if (this.isUnix()) {
+                        rt.exec("pkill "+tok);
+                    } else {
+                        rt.exec("taskkill /f /IM "+tok+" /T");
+                    }
                 }
 
             } else {
