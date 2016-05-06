@@ -30,7 +30,7 @@ import java.lang.Boolean;
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.3";
+static final String version = "1.0.4";
 
 SplashWindowFrame sp;
 JFrame frame;
@@ -40,7 +40,8 @@ JPanel jp3=new JPanel();
 JPanel ipPanel=new JPanel();
 JPanel jpnCenter=new JPanel();
 JPanel panel = new JPanel();
-JLabel labelIp= new JLabel("Your External Ip without VPN");
+JLabel labelIp= new JLabel("Your public Ip without VPN");
+JLabel jlbWav=new JLabel("Play a sound when VPN crash");
 JLabel jlbGap=new JLabel("Checking gap in seconds");
 JLabel jlbURL=new JLabel("URL to get your ip");
 JLabel jlbAutoStart=new JLabel("Auto start");
@@ -51,9 +52,11 @@ JLabel labelSoft= new JLabel("Software to stop when no VPN");
 JButton startButton=new JButton("START");
 JButton jbValidSoft=new JButton("Save settings");
 JButton jbUpdateIp=new JButton("Update Ip");
+JButton jbTestWav=new JButton("Test sound");
 JScrollPane informationScrollPane = new JScrollPane();
 JTextArea informationArea = new JTextArea();
 JTextField textFieldSoft= new JTextField();
+JTextField textFieldWav=new JTextField();
 JTextField textFieldGap=new JTextField();
 JTextField textFieldIp= new JTextField();
 JTextField textFieldURL=new JTextField();
@@ -62,67 +65,9 @@ JCheckBox jcbAutoStart=new JCheckBox();
 Timer timer;
 Timer timerSplashScreen;
 CInfoVPN infoVPN;
+boolean bSoundOneTime=true;
 
 
-//////////////////////////////////////////////////////////
-    public class CInfoVPN implements Serializable {
-        String stIp;
-        String stSoftware;
-        String stGap;
-        String stURL;
-        Boolean bAutoStart;
-        
-        public void serialize() {
-           try {
-               ObjectOutputStream oos = new ObjectOutputStream(
-                   new BufferedOutputStream(
-                       new FileOutputStream("infovpn.ser")
-                           )
-                         );
-
-             oos.writeObject(stIp);
-             oos.writeObject(stSoftware);
-             oos.writeObject(stGap);
-             oos.writeObject(stURL);
-             oos.writeObject(bAutoStart);
-             oos.flush();
-             oos.close();
-           } catch (NotSerializableException nse){System.out.println(nse);}
-                   catch (IOException ioe){System.out.println(ioe);};
-         }
-
-        //////////////////////////////////////////////////////////////////////////
-          public boolean deserialize () {
-            return deserialize("infovpn.ser");
-          }
-
-        //////////////////////////////////////////////////////////////////////////
-          public boolean deserialize (String file) {
-            boolean rt=true;
-            try {
-                ObjectInputStream ois = new ObjectInputStream(
-                                  new BufferedInputStream(
-                                          new FileInputStream(file)));
-                this.stIp=(String)(ois.readObject());
-                this.stSoftware=(String)(ois.readObject());
-                this.stGap=(String)(ois.readObject());
-                this.stURL=(String)(ois.readObject());
-                this.bAutoStart=(Boolean)(ois.readObject());
-                ois.close();
-            } catch (ClassNotFoundException cnfe) {
-                System.out.println(cnfe);
-                rt=false;
-            } catch (FileNotFoundException fnfe) {
-                System.out.println(fnfe);
-                rt=false;
-            } catch (IOException ioe) {
-                System.out.println(ioe);
-                rt=false;
-            }
-            System.out.println(rt);
-            return rt;
-          }        
-    }
 
     public static String getMyExternalIp(String url) throws Exception {
         URL whatismyip = new URL(url); //"http://checkip.amazonaws.com"
@@ -203,6 +148,7 @@ CInfoVPN infoVPN;
         this.infoVPN.stGap=this.textFieldGap.getText();
         this.infoVPN.stURL=this.textFieldURL.getText();
         this.infoVPN.bAutoStart=Boolean.valueOf(this.jcbAutoStart.isSelected());
+        this.infoVPN.stWav=this.textFieldWav.getText();
         this.infoVPN.serialize();
   }
   
@@ -227,6 +173,21 @@ CInfoVPN infoVPN;
   public boolean isUnix() {
         String OS = System.getProperty("os.name").toLowerCase();
         return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 );		
+  }
+  
+  void makeSound() {
+      if (this.textFieldWav.getText().trim()=="")return;
+      MakeSound ms=new MakeSound();
+      try {
+          ms.playSound(this.textFieldWav.getText());
+      } catch (Exception exc) {
+          exc.printStackTrace();
+          trace(exc.toString());
+      }
+  }
+  
+  void testWav_actionPerformed(ActionEvent e) {
+      this.makeSound();
   }
   
   void Timer_actionPerformed(ActionEvent e) {
@@ -282,6 +243,7 @@ CInfoVPN infoVPN;
         textFieldURL.setText(infoVPN.stURL);
         textFieldSoft.setText(this.infoVPN.stSoftware);
         this.jcbAutoStart.setSelected(this.infoVPN.bAutoStart.booleanValue());
+        textFieldWav.setText(this.infoVPN.stWav);
     }
       
     //Create internal frame
@@ -315,6 +277,9 @@ CInfoVPN infoVPN;
       new ActionListener() {public void actionPerformed(ActionEvent e) {save_actionPerformed(e);}}
     );    
 
+    jbTestWav.addActionListener(
+      new ActionListener() {public void actionPerformed(ActionEvent e) {testWav_actionPerformed(e);}}
+    );    
 
     statusPanel.add(jlbStatus);
     statusPanel.setPreferredSize(new Dimension(100, 22));
@@ -337,19 +302,22 @@ CInfoVPN infoVPN;
             .addComponent(labelSoft)
             .addComponent(jlbGap)
             .addComponent(jlbURL)
-            .addComponent(jlbAutoStart))
+            .addComponent(jlbAutoStart)
+            .addComponent(jlbWav))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(ipPanel)
             .addComponent(textFieldSoft)
             .addComponent(textFieldGap)
             .addComponent(textFieldURL)
-            .addComponent(jcbAutoStart))
+            .addComponent(jcbAutoStart)
+            .addComponent(textFieldWav))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(statusPanel)
             .addComponent(jp1)
             .addComponent(jp2)        
             .addComponent(jp3)
-            .addComponent(jbValidSoft))
+            .addComponent(jbValidSoft)
+            .addComponent(jbTestWav))
     );    
     gpLayout.setVerticalGroup(gpLayout.createSequentialGroup()
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -372,6 +340,10 @@ CInfoVPN infoVPN;
             .addComponent(jlbAutoStart)
             .addComponent(jcbAutoStart)
             .addComponent(jbValidSoft))
+        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+            .addComponent(jlbWav)
+            .addComponent(textFieldWav)
+            .addComponent(jbTestWav))
     );
 
    
@@ -405,15 +377,23 @@ CInfoVPN infoVPN;
     public void vpnOK(String st) {
         jlbStatus.setText("VPN OK "+st);
         statusPanel.setBackground(Color.green);
+        this.bSoundOneTime=true;
     }
 
     public void vpnKO(String st) {
         jlbStatus.setText("VPN KO "+st);
         statusPanel.setBackground(Color.red);
+        
+        //play a sound just one time !
+        if (this.bSoundOneTime) {
+            this.makeSound();
+            this.bSoundOneTime=false;
+        }
     }
     
     public void vpnStopped() {
         jlbStatus.setText("STOPPED !");
+        this.bSoundOneTime=true;
         statusPanel.setBackground(Color.red);
     }
     
