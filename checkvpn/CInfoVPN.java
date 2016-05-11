@@ -28,6 +28,16 @@ public class CInfoVPN implements Serializable {
     String stURL;
     String stWav;
     Boolean bAutoStart;
+    String stSmtpHost;
+    Boolean bSmtpAuthentification;
+    Boolean bStartTLS;
+    String stPort;
+    String stFrom;
+    String stTo;
+    String stSubject;
+    String stMail;
+    Boolean bSendMail;
+    String stPassword;
 
     public void serialize() {
        try {
@@ -43,6 +53,16 @@ public class CInfoVPN implements Serializable {
          oos.writeObject(stURL);
          oos.writeObject(bAutoStart);
          oos.writeObject(stWav);
+         oos.writeObject(stSmtpHost);
+         oos.writeObject(bSmtpAuthentification);
+         oos.writeObject(bStartTLS);
+         oos.writeObject(stPort);
+         oos.writeObject(stFrom);
+         oos.writeObject(stTo);
+         oos.writeObject(stSubject);
+         oos.writeObject(stMail);
+         oos.writeObject(bSendMail);
+         oos.writeObject(stPassword);
          oos.flush();
          oos.close();
        } catch (NotSerializableException nse){System.out.println(nse);}
@@ -61,12 +81,22 @@ public class CInfoVPN implements Serializable {
             ObjectInputStream ois = new ObjectInputStream(
                               new BufferedInputStream(
                                       new FileInputStream(file)));
-            this.stIp=(String)(ois.readObject());
-            this.stSoftware=(String)(ois.readObject());
-            this.stGap=(String)(ois.readObject());
-            this.stURL=(String)(ois.readObject());
-            this.bAutoStart=(Boolean)(ois.readObject());
-            this.stWav=(String)(ois.readObject());
+            stIp=(String)(ois.readObject());
+            stSoftware=(String)(ois.readObject());
+            stGap=(String)(ois.readObject());
+            stURL=(String)(ois.readObject());
+            bAutoStart=(Boolean)(ois.readObject());
+            stWav=(String)(ois.readObject());
+            stSmtpHost=(String)(ois.readObject());
+            bSmtpAuthentification=(Boolean)(ois.readObject());
+            bStartTLS=(Boolean)(ois.readObject());
+            stPort=(String)(ois.readObject());
+            stFrom=(String)(ois.readObject());
+            stTo=(String)(ois.readObject());
+            stSubject=(String)(ois.readObject());
+            stMail=(String)(ois.readObject());
+            bSendMail=(Boolean)(ois.readObject());
+            stPassword=(String)(ois.readObject());
             ois.close();
         } catch (ClassNotFoundException cnfe) {
             System.out.println(cnfe);
