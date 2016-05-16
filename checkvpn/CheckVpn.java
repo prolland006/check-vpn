@@ -70,6 +70,8 @@ boolean bActionOneTime=true;
 
 /////////////////////////////////////////////////////////////////////////////////
   public CheckVpn() {
+      
+      
     String[] st={"Release "+CheckVpn.version,"GNU General Public License version 3.0 (GPLv3)", "Author Patrice Rolland"};
     sp = new SplashWindowFrame("CheckVpn/pic/logo.jpg", st);
     createTimerSplashScreen ().start();
@@ -225,7 +227,7 @@ boolean bActionOneTime=true;
       new WindowAdapter() {public void windowClosing(WindowEvent e) {System.exit(0);}}
     );
     frame.setSize( 500, 400);
-    
+  
     this.timer=createTimer();
     if (this.jcbAutoStart.isSelected())
         start();
