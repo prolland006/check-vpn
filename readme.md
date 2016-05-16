@@ -9,8 +9,8 @@ Requirements
 - You need to install JAVA 1,8 on your operating system
 Setting
 -------
-- Download the .jar
-- Double click on it
+- Download the .zip and unzip it
+- Double click on checkvpn.jar
 - Click on the button « Update ip » when the VPN is stopped to get your public ip address.
 - Type the programs separated by semicolon that you would like to stop when the vpn is falling down (ex: utorrent.exe;firefox.exe on linux just put « firefox » no extension)
 - Click on start button and the program will check every x seconds your ip address, if it not the vpn's ip the programs will be stopped by this tool.
