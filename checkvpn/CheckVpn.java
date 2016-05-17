@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JCheckBox;
 import javax.swing.GroupLayout;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Color;
 import java.net.URL;
 import java.util.StringTokenizer;
@@ -27,7 +28,7 @@ import java.awt.ComponentOrientation;
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.5";
+static final String version = "1.0.6";
 
 SplashWindowFrame sp;
 JFrame frame;
@@ -40,6 +41,7 @@ JPanel jp3=new JPanel();
 JPanel ipPanel=new JPanel();
 JPanel jpnCenter=new JPanel();
 JPanel panel = new JPanel();
+JPanel panelSound = new JPanel();
 JLabel labelIp= new JLabel("Your public Ip without VPN");
 JLabel jlbWav=new JLabel("Play a sound");
 JLabel jlbGap=new JLabel("Gap in seconds");
@@ -52,7 +54,8 @@ JLabel labelSoft= new JLabel("Software to stop");
 JButton startButton=new JButton("START");
 JButton jbValidSoft=new JButton("Save settings");
 JButton jbUpdateIp=new JButton("Update Ip");
-JButton jbTestWav=new JButton("Test sound");
+JButton jbTestWav=new JButton("Test");
+JButton jbChooseFile=new JButton("...");
 JScrollPane informationScrollPane = new JScrollPane();
 JTextArea informationArea = new JTextArea();
 JTextField textFieldSoft= new JTextField();
@@ -117,10 +120,17 @@ boolean bActionOneTime=true;
         
     labelIp.setPreferredSize(new Dimension(100, 22));
     labelIp.setMaximumSize(new Dimension(100, 22));
+    
+    this.textFieldIp.setPreferredSize(new Dimension(110, 22));
+    textFieldIp.setMaximumSize(new Dimension(110, 22));
+    
+    this.ipPanel.setPreferredSize(new Dimension(230, 22));
+    this.ipPanel.setMaximumSize(new Dimension(230, 22));
+    
+    this.textFieldWav.setPreferredSize(new Dimension(230, 22));
+    this.textFieldWav.setMaximumSize(new Dimension(230, 22));
 
-    textFieldIp.setPreferredSize(new Dimension(100, 22));
-    textFieldIp.setMaximumSize(new Dimension(100, 22));   
-      
+    
     jbUpdateIp.addActionListener(
       new ActionListener() {public void actionPerformed(ActionEvent e) {updateIp_actionPerformed(e);}}
     );    
@@ -136,6 +146,10 @@ boolean bActionOneTime=true;
     jbTestWav.addActionListener(
       new ActionListener() {public void actionPerformed(ActionEvent e) {testWav_actionPerformed(e);}}
     );    
+    
+    jbChooseFile.addActionListener(
+      new ActionListener() {public void actionPerformed(ActionEvent e) {chooseFile_actionPerformed(e);}}
+    );    
 
     statusPanel.add(jlbStatus);
     statusPanel.setPreferredSize(new Dimension(100, 22));
@@ -148,6 +162,14 @@ boolean bActionOneTime=true;
     ipPanel.add(jbUpdateIp);
     ipPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
   
+    
+    FlowLayout flowLaySound=new FlowLayout(FlowLayout.LEADING);
+    flowLaySound.setHgap(0);
+    panelSound.setLayout(flowLay);
+    panelSound.add(this.jbChooseFile);
+    panelSound.add(this.jbTestWav);
+    panelSound.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+    
     GroupLayout gpLayout=new GroupLayout(panelNorth);
     panelNorth.setLayout(gpLayout);
     gpLayout.setAutoCreateGaps(true);
@@ -158,22 +180,22 @@ boolean bActionOneTime=true;
             .addComponent(labelSoft)
             .addComponent(jlbGap)
             .addComponent(jlbURL)
-            .addComponent(jlbAutoStart)
-            .addComponent(jlbWav))
+            .addComponent(jlbWav)
+            .addComponent(jlbAutoStart))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(ipPanel)
             .addComponent(textFieldSoft)
             .addComponent(textFieldGap)
             .addComponent(textFieldURL)
-            .addComponent(jcbAutoStart)
-            .addComponent(textFieldWav))
+            .addComponent(textFieldWav)
+            .addComponent(jcbAutoStart))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(statusPanel)
             .addComponent(jp1)
             .addComponent(jp2)        
             .addComponent(jp3)
-            .addComponent(jbValidSoft)
-            .addComponent(jbTestWav))
+            .addComponent(panelSound)
+            .addComponent(jbValidSoft))
     );    
     gpLayout.setVerticalGroup(gpLayout.createSequentialGroup()
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -193,13 +215,13 @@ boolean bActionOneTime=true;
             .addComponent(textFieldURL)
             .addComponent(jp3))
         .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+            .addComponent(jlbWav)
+            .addComponent(textFieldWav)
+            .addComponent(panelSound))
+        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
             .addComponent(jlbAutoStart)
             .addComponent(jcbAutoStart)
             .addComponent(jbValidSoft))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(jlbWav)
-            .addComponent(textFieldWav)
-            .addComponent(jbTestWav))
     );
 
    
@@ -338,6 +360,28 @@ boolean bActionOneTime=true;
   void sendMail_actionPerformed(ActionEvent e) {
         this.sendMail();
   }
+  
+    void chooseFile_actionPerformed(ActionEvent e) {
+        File curDir = null;
+        try {
+            curDir = new File(".").getCanonicalFile();
+            this.trace("curDir : " + curDir);
+        } catch(IOException exc) 
+        {
+            exc.printStackTrace();
+            trace(exc.toString());
+        }
+        
+        
+        JFileChooser chooser = new JFileChooser(curDir);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("WAV", "wav");
+        chooser.setFileFilter(filter);
+        int ret=chooser.showOpenDialog(null);
+        if(ret == JFileChooser.APPROVE_OPTION) {
+            trace("File choosen : " + chooser.getSelectedFile());
+            this.textFieldWav.setText(chooser.getSelectedFile().toString());
+        }
+  }  
   
   void start_actionPerformed(ActionEvent e) {
         if (timer.isRunning()) {
