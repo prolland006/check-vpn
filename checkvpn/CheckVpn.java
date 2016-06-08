@@ -23,12 +23,13 @@ import java.awt.Color;
 import java.net.URL;
 import java.util.StringTokenizer;
 import CheckVpn.common.SplashWindowFrame;
+import CheckVpn.common.Log;
 import java.awt.ComponentOrientation;
 
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.6";
+static final String version = "1.0.7";
 
 SplashWindowFrame sp;
 JFrame frame;
@@ -70,192 +71,200 @@ Timer timerSplashScreen;
 CInfoVPN infoVPN;
 boolean bActionOneTime=true;
 
+Log log;
+
 
 /////////////////////////////////////////////////////////////////////////////////
-  public CheckVpn() {
-      
-      
-    String[] st={"Release "+CheckVpn.version,"GNU General Public License version 3.0 (GPLv3)", "Author Patrice Rolland"};
-    sp = new SplashWindowFrame("CheckVpn/pic/logo.jpg", st);
-    createTimerSplashScreen ().start();
+    public CheckVpn() {
+        String[] st={"Release "+CheckVpn.version,"GNU General Public License version 3.0 (GPLv3)", "Author Patrice Rolland"};
+        sp = new SplashWindowFrame("CheckVpn/pic/logo.jpg", st);
+        createTimerSplashScreen ().start();
+
+        //read serialized data
+        infoVPN=new CInfoVPN();
+        if (!infoVPN.deserialize()) {
+            initDefaultValue();
+        } else {
+            textFieldIp.setText(this.infoVPN.stIp);
+            textFieldGap.setText(this.infoVPN.stGap);
+            textFieldURL.setText(infoVPN.stURL);
+            textFieldSoft.setText(this.infoVPN.stSoftware);
+            jcbAutoStart.setSelected(this.infoVPN.bAutoStart.booleanValue());
+            textFieldWav.setText(this.infoVPN.stWav);
+            this.mailPanel.textFieldFrom.setText(this.infoVPN.stFrom);
+            this.mailPanel.textFieldPort.setText(this.infoVPN.stPort);
+            this.mailPanel.textFieldSMTPHost.setText(this.infoVPN.stSmtpHost);
+            this.mailPanel.textFieldSubject.setText(this.infoVPN.stSubject);
+            this.mailPanel.textFieldTo.setText(this.infoVPN.stTo);
+            this.mailPanel.jcbSMTPAuthentification.setSelected(this.infoVPN.bSmtpAuthentification.booleanValue());
+            this.mailPanel.jcbSMTPStartTLS.setSelected(this.infoVPN.bStartTLS.booleanValue());
+            this.mailPanel.jcbSendMail.setSelected(this.infoVPN.bSendMail.booleanValue());
+            this.mailPanel.mailArea.setText(this.infoVPN.stMail);
+            this.mailPanel.textFieldPassword.setText(this.infoVPN.stPassword);
+        }
+
+        //Create internal frame
+        frame = new JFrame("CHECK VPN - Release "+CheckVpn.version);
+        frame.setSize( 325, 200);
+        frame.setLocation( 50, 50);
+        frame.setVisible(false);
+
+
+        startButton.addActionListener(
+            new ActionListener() {public void actionPerformed(ActionEvent e) {start_actionPerformed(e);}}
+        );    
+
+        startButton.setMaximumSize(new Dimension(100,44));
+        startButton.setPreferredSize(new Dimension(100,44));
+        startButton.setMinimumSize(new Dimension(100,44));
+        jpnCenter.add(startButton);
+
+        labelIp.setPreferredSize(new Dimension(100, 22));
+        labelIp.setMaximumSize(new Dimension(100, 22));
+
+        this.textFieldIp.setPreferredSize(new Dimension(110, 22));
+        textFieldIp.setMaximumSize(new Dimension(110, 22));
+
+        this.ipPanel.setPreferredSize(new Dimension(230, 22));
+        this.ipPanel.setMaximumSize(new Dimension(230, 22));
+
+        this.textFieldWav.setPreferredSize(new Dimension(230, 22));
+        this.textFieldWav.setMaximumSize(new Dimension(230, 22));
+
+
+        jbUpdateIp.addActionListener(
+          new ActionListener() {public void actionPerformed(ActionEvent e) {updateIp_actionPerformed(e);}}
+        );    
+
+        jbValidSoft.addActionListener(
+          new ActionListener() {public void actionPerformed(ActionEvent e) {save_actionPerformed(e);}}
+        );    
+
+        mailPanel.buttonSendMail.addActionListener(
+          new ActionListener() {public void actionPerformed(ActionEvent e) {sendMail_actionPerformed(e);}}
+        );
+
+        jbTestWav.addActionListener(
+          new ActionListener() {public void actionPerformed(ActionEvent e) {testWav_actionPerformed(e);}}
+        );    
+
+        jbChooseFile.addActionListener(
+          new ActionListener() {public void actionPerformed(ActionEvent e) {chooseFile_actionPerformed(e);}}
+        );    
+
+        statusPanel.add(jlbStatus);
+        statusPanel.setPreferredSize(new Dimension(100, 22));
+        statusPanel.setMaximumSize(new Dimension(100, 22));
+
+        FlowLayout flowLay=new FlowLayout(FlowLayout.LEADING);
+        flowLay.setHgap(0);
+        ipPanel.setLayout(flowLay);
+        ipPanel.add(textFieldIp);
+        ipPanel.add(jbUpdateIp);
+        ipPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+
+
+        FlowLayout flowLaySound=new FlowLayout(FlowLayout.LEADING);
+        flowLaySound.setHgap(0);
+        panelSound.setLayout(flowLay);
+        panelSound.add(this.jbChooseFile);
+        panelSound.add(this.jbTestWav);
+        panelSound.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+
+        GroupLayout gpLayout=new GroupLayout(panelNorth);
+        panelNorth.setLayout(gpLayout);
+        gpLayout.setAutoCreateGaps(true);
+        gpLayout.setAutoCreateContainerGaps(true);
+        gpLayout.setHorizontalGroup(gpLayout.createSequentialGroup()
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(labelIp)
+                .addComponent(labelSoft)
+                .addComponent(jlbGap)
+                .addComponent(jlbURL)
+                .addComponent(jlbWav)
+                .addComponent(jlbAutoStart))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(ipPanel)
+                .addComponent(textFieldSoft)
+                .addComponent(textFieldGap)
+                .addComponent(textFieldURL)
+                .addComponent(textFieldWav)
+                .addComponent(jcbAutoStart))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(statusPanel)
+                .addComponent(jp1)
+                .addComponent(jp2)        
+                .addComponent(jp3)
+                .addComponent(panelSound)
+                .addComponent(jbValidSoft))
+        );    
+        gpLayout.setVerticalGroup(gpLayout.createSequentialGroup()
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(labelIp)
+                .addComponent(ipPanel)
+                .addComponent(statusPanel))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(labelSoft)
+                .addComponent(textFieldSoft)
+                .addComponent(jp1))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(jlbGap)
+                .addComponent(textFieldGap)
+                .addComponent(jp2))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(jlbURL)
+                .addComponent(textFieldURL)
+                .addComponent(jp3))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(jlbWav)
+                .addComponent(textFieldWav)
+                .addComponent(panelSound))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(jlbAutoStart)
+                .addComponent(jcbAutoStart)
+                .addComponent(jbValidSoft))
+        );
+
+
+        panel.setLayout(new BorderLayout());
+
+        informationArea.setEditable(false);
+
+        informationScrollPane.getViewport().add(informationArea, null);
+
+        panel.add(informationScrollPane);
+
+        generalPanel.setLayout(new BorderLayout());
+        generalPanel.add(panelNorth, BorderLayout.NORTH);
+        generalPanel.add(panel, BorderLayout.CENTER);
+        generalPanel.add(jpnCenter, BorderLayout.SOUTH);
+
+        jtpMainPanel.setLayout(new GridLayout(1, 1));
+        jtpMainPanel.addTab("General", generalPanel);
+        jtpMainPanel.addTab("Mail", mailPanel);
+
+        frame.setContentPane(jtpMainPanel);
+
+        //Create MainFrame
+       frame.addWindowListener(
+          new WindowAdapter() {public void windowClosing(WindowEvent e) {System.exit(0);}}
+        );
+        frame.setSize( 500, 400);
+
+        this.timer=createTimer();
+        if (this.jcbAutoStart.isSelected())
+            start();
+        else vpnStopped();
+
+        try {
+            log=new Log("log", "checkvpn", 15, 15, 5000);
+            trace("CheckVPN start!",Log.PRIORITY_INFO);
+        } catch (IOException exc) {
+            exc.printStackTrace();
+            this.trace(exc.toString(),Log.PRIORITY_ERROR);
+        }  
     
-    //read serialized data
-    infoVPN=new CInfoVPN();
-    if (!infoVPN.deserialize()) {
-        initDefaultValue();
-    } else {
-        textFieldIp.setText(this.infoVPN.stIp);
-        textFieldGap.setText(this.infoVPN.stGap);
-        textFieldURL.setText(infoVPN.stURL);
-        textFieldSoft.setText(this.infoVPN.stSoftware);
-        jcbAutoStart.setSelected(this.infoVPN.bAutoStart.booleanValue());
-        textFieldWav.setText(this.infoVPN.stWav);
-        this.mailPanel.textFieldFrom.setText(this.infoVPN.stFrom);
-        this.mailPanel.textFieldPort.setText(this.infoVPN.stPort);
-        this.mailPanel.textFieldSMTPHost.setText(this.infoVPN.stSmtpHost);
-        this.mailPanel.textFieldSubject.setText(this.infoVPN.stSubject);
-        this.mailPanel.textFieldTo.setText(this.infoVPN.stTo);
-        this.mailPanel.jcbSMTPAuthentification.setSelected(this.infoVPN.bSmtpAuthentification.booleanValue());
-        this.mailPanel.jcbSMTPStartTLS.setSelected(this.infoVPN.bStartTLS.booleanValue());
-        this.mailPanel.jcbSendMail.setSelected(this.infoVPN.bSendMail.booleanValue());
-        this.mailPanel.mailArea.setText(this.infoVPN.stMail);
-        this.mailPanel.textFieldPassword.setText(this.infoVPN.stPassword);
     }
-      
-    //Create internal frame
-    frame = new JFrame("CHECK VPN - Release "+CheckVpn.version);
-    frame.setSize( 325, 200);
-    frame.setLocation( 50, 50);
-    frame.setVisible(false);
-    
-
-    startButton.addActionListener(
-        new ActionListener() {public void actionPerformed(ActionEvent e) {start_actionPerformed(e);}}
-    );    
-    
-    startButton.setMaximumSize(new Dimension(100,44));
-    startButton.setPreferredSize(new Dimension(100,44));
-    startButton.setMinimumSize(new Dimension(100,44));
-    jpnCenter.add(startButton);
-        
-    labelIp.setPreferredSize(new Dimension(100, 22));
-    labelIp.setMaximumSize(new Dimension(100, 22));
-    
-    this.textFieldIp.setPreferredSize(new Dimension(110, 22));
-    textFieldIp.setMaximumSize(new Dimension(110, 22));
-    
-    this.ipPanel.setPreferredSize(new Dimension(230, 22));
-    this.ipPanel.setMaximumSize(new Dimension(230, 22));
-    
-    this.textFieldWav.setPreferredSize(new Dimension(230, 22));
-    this.textFieldWav.setMaximumSize(new Dimension(230, 22));
-
-    
-    jbUpdateIp.addActionListener(
-      new ActionListener() {public void actionPerformed(ActionEvent e) {updateIp_actionPerformed(e);}}
-    );    
-
-    jbValidSoft.addActionListener(
-      new ActionListener() {public void actionPerformed(ActionEvent e) {save_actionPerformed(e);}}
-    );    
-    
-    mailPanel.buttonSendMail.addActionListener(
-      new ActionListener() {public void actionPerformed(ActionEvent e) {sendMail_actionPerformed(e);}}
-    );
-
-    jbTestWav.addActionListener(
-      new ActionListener() {public void actionPerformed(ActionEvent e) {testWav_actionPerformed(e);}}
-    );    
-    
-    jbChooseFile.addActionListener(
-      new ActionListener() {public void actionPerformed(ActionEvent e) {chooseFile_actionPerformed(e);}}
-    );    
-
-    statusPanel.add(jlbStatus);
-    statusPanel.setPreferredSize(new Dimension(100, 22));
-    statusPanel.setMaximumSize(new Dimension(100, 22));
-    
-    FlowLayout flowLay=new FlowLayout(FlowLayout.LEADING);
-    flowLay.setHgap(0);
-    ipPanel.setLayout(flowLay);
-    ipPanel.add(textFieldIp);
-    ipPanel.add(jbUpdateIp);
-    ipPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-  
-    
-    FlowLayout flowLaySound=new FlowLayout(FlowLayout.LEADING);
-    flowLaySound.setHgap(0);
-    panelSound.setLayout(flowLay);
-    panelSound.add(this.jbChooseFile);
-    panelSound.add(this.jbTestWav);
-    panelSound.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-    
-    GroupLayout gpLayout=new GroupLayout(panelNorth);
-    panelNorth.setLayout(gpLayout);
-    gpLayout.setAutoCreateGaps(true);
-    gpLayout.setAutoCreateContainerGaps(true);
-    gpLayout.setHorizontalGroup(gpLayout.createSequentialGroup()
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(labelIp)
-            .addComponent(labelSoft)
-            .addComponent(jlbGap)
-            .addComponent(jlbURL)
-            .addComponent(jlbWav)
-            .addComponent(jlbAutoStart))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(ipPanel)
-            .addComponent(textFieldSoft)
-            .addComponent(textFieldGap)
-            .addComponent(textFieldURL)
-            .addComponent(textFieldWav)
-            .addComponent(jcbAutoStart))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(statusPanel)
-            .addComponent(jp1)
-            .addComponent(jp2)        
-            .addComponent(jp3)
-            .addComponent(panelSound)
-            .addComponent(jbValidSoft))
-    );    
-    gpLayout.setVerticalGroup(gpLayout.createSequentialGroup()
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(labelIp)
-            .addComponent(ipPanel)
-            .addComponent(statusPanel))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(labelSoft)
-            .addComponent(textFieldSoft)
-            .addComponent(jp1))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(jlbGap)
-            .addComponent(textFieldGap)
-            .addComponent(jp2))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(jlbURL)
-            .addComponent(textFieldURL)
-            .addComponent(jp3))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(jlbWav)
-            .addComponent(textFieldWav)
-            .addComponent(panelSound))
-        .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(jlbAutoStart)
-            .addComponent(jcbAutoStart)
-            .addComponent(jbValidSoft))
-    );
-
-   
-    panel.setLayout(new BorderLayout());
- 
-    informationArea.setEditable(false);
-                
-    informationScrollPane.getViewport().add(informationArea, null);
-
-    panel.add(informationScrollPane);
-                
-    generalPanel.setLayout(new BorderLayout());
-    generalPanel.add(panelNorth, BorderLayout.NORTH);
-    generalPanel.add(panel, BorderLayout.CENTER);
-    generalPanel.add(jpnCenter, BorderLayout.SOUTH);
-
-    jtpMainPanel.setLayout(new GridLayout(1, 1));
-    jtpMainPanel.addTab("General", generalPanel);
-    jtpMainPanel.addTab("Mail", mailPanel);
-
-    frame.setContentPane(jtpMainPanel);
-    
-    //Create MainFrame
-   frame.addWindowListener(
-      new WindowAdapter() {public void windowClosing(WindowEvent e) {System.exit(0);}}
-    );
-    frame.setSize( 500, 400);
-  
-    this.timer=createTimer();
-    if (this.jcbAutoStart.isSelected())
-        start();
-    else vpnStopped();
-  
-   }
 
     public static String getMyExternalIp(String url) throws Exception {
         URL whatismyip = new URL(url); //"http://checkip.amazonaws.com"
@@ -326,7 +335,7 @@ boolean bActionOneTime=true;
         this.textFieldIp.setText(CheckVpn.getMyExternalIp(this.textFieldURL.getText()));
     } catch (Exception exc) {
         exc.printStackTrace();
-        this.trace(exc.toString());
+        this.trace(exc.toString(),Log.PRIORITY_ERROR);
     }
   }
   
@@ -365,11 +374,11 @@ boolean bActionOneTime=true;
         File curDir = null;
         try {
             curDir = new File(".").getCanonicalFile();
-            this.trace("curDir : " + curDir);
+            this.trace("curDir : " + curDir,Log.PRIORITY_INFO);
         } catch(IOException exc) 
         {
             exc.printStackTrace();
-            trace(exc.toString());
+            trace(exc.toString(),Log.PRIORITY_ERROR);
         }
         
         
@@ -378,7 +387,7 @@ boolean bActionOneTime=true;
         chooser.setFileFilter(filter);
         int ret=chooser.showOpenDialog(null);
         if(ret == JFileChooser.APPROVE_OPTION) {
-            trace("File choosen : " + chooser.getSelectedFile());
+            trace("File choosen : " + chooser.getSelectedFile(),Log.PRIORITY_INFO);
             this.textFieldWav.setText(chooser.getSelectedFile().toString());
         }
   }  
@@ -403,11 +412,11 @@ boolean bActionOneTime=true;
       if (this.textFieldWav.getText().trim().compareTo("")==0)return;
       MakeSound ms=new MakeSound();
       try {
-          trace("File = \""+this.textFieldWav.getText()+"\"");
+          trace("File = \""+this.textFieldWav.getText()+"\"",Log.PRIORITY_INFO);
           ms.playSound(this.textFieldWav.getText());
       } catch (Exception exc) {
           exc.printStackTrace();
-          trace(exc.toString());
+          trace(exc.toString(),Log.PRIORITY_ERROR);
       }
   }
   
@@ -417,38 +426,45 @@ boolean bActionOneTime=true;
   
   void Timer_actionPerformed(ActionEvent e) {
         String tok;
+        String st=this.infoVPN.stIp;
         try {
-            String st=CheckVpn.getMyExternalIp(this.textFieldURL.getText());
+            st=CheckVpn.getMyExternalIp(this.textFieldURL.getText());
 
-            trace("external ip="+st);
+            trace("external ip="+st,Log.PRIORITY_INFO);
+        } catch (Exception exc) {
+            exc.printStackTrace();
+            trace(exc.toString(),Log.PRIORITY_ERROR);
+        }
                     
-            if (st.compareTo(this.infoVPN.stIp)==0) {
-                this.vpnKO(st);
-                trace(" VPN KO");
-                Runtime rt = Runtime.getRuntime();
-                StringTokenizer s = new StringTokenizer(this.infoVPN.stSoftware,";");
-                while (s.hasMoreTokens()) {
-                    tok=s.nextToken();
-                    trace("Kill process "+tok+"...");
+        if (st.compareTo(this.infoVPN.stIp)==0) {
+            this.vpnKO(st);
+            trace(" VPN KO",Log.PRIORITY_INFO);
+            Runtime rt = Runtime.getRuntime();
+            StringTokenizer s = new StringTokenizer(this.infoVPN.stSoftware,";");
+            while (s.hasMoreTokens()) {
+                tok=s.nextToken();
+                trace("Kill process "+tok+"...",Log.PRIORITY_INFO);
+                try {
                     if (this.isUnix()) {
                         rt.exec("pkill "+tok);
                     } else {
                         rt.exec("taskkill /f /IM "+tok+" /T");
                     }
+                } catch (IOException exc) {
+                    exc.printStackTrace();
+                    trace(exc.toString(),Log.PRIORITY_ERROR);
                 }
-
-            } else {
-                trace(" VPN OK");
-                this.vpnOK(st);
             }
-        } catch (Exception exc) {
-            exc.printStackTrace();
+        } else {
+            trace(" VPN OK",Log.PRIORITY_INFO);
+            this.vpnOK(st);
         }
   }
   
-  public void trace(String st) {
+  public void trace(String st, int logPriority) {
     System.out.print(st);
     this.addText(st);    
+    log.write(logPriority, "classs", "method", st, true);
   }
 
     public void sendMail() {
@@ -463,11 +479,11 @@ boolean bActionOneTime=true;
         mail.stSubject=mailPanel.textFieldSubject.getText();
         mail.stTo=mailPanel.textFieldTo.getText();
         try {
-            trace("send mail : "+mail.toString());
+            trace("send mail : "+mail.toString(),Log.PRIORITY_INFO);
             mail.sendMail();
         } catch (Exception exc) {
             exc.printStackTrace();
-            trace(exc.toString());
+            trace(exc.toString(),Log.PRIORITY_ERROR);
         }
     }
 
@@ -523,7 +539,7 @@ boolean bActionOneTime=true;
         this.mailPanel.mailArea.setText("VPN Crashed");
       } catch (Exception exc) {
           exc.printStackTrace();
-          this.trace(exc.toString());
+          this.trace(exc.toString(),Log.PRIORITY_ERROR);
       }
   }
 
