@@ -29,16 +29,16 @@ import java.awt.ComponentOrientation;
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.7";
+static final String version = "1.0.8";
 
 SplashWindowFrame sp;
 JFrame frame;
 JTabbedPane jtpMainPanel=new JTabbedPane();
 MailPanel mailPanel = new MailPanel();
 JPanel generalPanel=new JPanel();
-JPanel jp1=new JPanel();
-JPanel jp2=new JPanel();
-JPanel jp3=new JPanel();
+JLabel jl1=new JLabel("");
+JLabel jl2=new JLabel("");
+JLabel jl3=new JLabel("");
 JPanel ipPanel=new JPanel();
 JPanel jpnCenter=new JPanel();
 JPanel panel = new JPanel();
@@ -76,7 +76,7 @@ Log log;
 
 /////////////////////////////////////////////////////////////////////////////////
     public CheckVpn() {
-        String[] st={"Release "+CheckVpn.version,"GNU General Public License version 3.0 (GPLv3)", "Author Patrice Rolland"};
+        String[] st={"Release "+CheckVpn.version,"GNU General Public License version 3.0 (GPLv3)", "This product includes GeoLite2 data created by MaxMind","available from www.maxmind.com","Author Patrice Rolland"};
         sp = new SplashWindowFrame("CheckVpn/pic/logo.jpg", st);
         createTimerSplashScreen ().start();
 
@@ -192,9 +192,9 @@ Log log;
                 .addComponent(jcbAutoStart))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(statusPanel)
-                .addComponent(jp1)
-                .addComponent(jp2)        
-                .addComponent(jp3)
+                .addComponent(jl1)
+                .addComponent(jl2)        
+                .addComponent(jl3)
                 .addComponent(panelSound)
                 .addComponent(jbValidSoft))
         );    
@@ -206,15 +206,15 @@ Log log;
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(labelSoft)
                 .addComponent(textFieldSoft)
-                .addComponent(jp1))
+                .addComponent(jl1))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbGap)
                 .addComponent(textFieldGap)
-                .addComponent(jp2))
+                .addComponent(jl2))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbURL)
                 .addComponent(textFieldURL)
-                .addComponent(jp3))
+                .addComponent(jl3))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbWav)
                 .addComponent(textFieldWav)
@@ -265,15 +265,36 @@ Log log;
         }  
     
     }
+    
+    public void UpdateGeoLoc(String ip) {
+        try {
+            String city=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=city");
+            trace("city="+city,Log.PRIORITY_INFO);
+            jl1.setText(city);
+            
+            String subName=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=subName");
+            trace("subName="+subName,Log.PRIORITY_INFO);
+            jl2.setText(subName);
 
-    public static String getMyExternalIp(String url) throws Exception {
-        URL whatismyip = new URL(url); //"http://checkip.amazonaws.com"
+            String country=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=country");
+            trace("country="+country,Log.PRIORITY_INFO);
+            jl3.setText(country);
+            
+        } catch (Exception exc) {
+            exc.printStackTrace();
+            this.trace(exc.toString(),Log.PRIORITY_WARNING);            
+        }        
+    }
+    
+    public static String getURLInfo(String url) throws Exception {
+                                    //"http://checkip.amazonaws.com"
+        URL urlinfo = new URL(url); //"http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip=83.153.49.164&data=city"
         BufferedReader in = null;
         try {
             in = new BufferedReader(new InputStreamReader(
-                    whatismyip.openStream()));
-            String ip = in.readLine();
-            return ip;
+                    urlinfo.openStream()));
+            String st = in.readLine();
+            return st;
         } finally {
             if (in != null) {
                 try {
@@ -332,7 +353,7 @@ Log log;
   
   void updateIp_actionPerformed(ActionEvent e) {
     try {
-        this.textFieldIp.setText(CheckVpn.getMyExternalIp(this.textFieldURL.getText()));
+        this.textFieldIp.setText(CheckVpn.getURLInfo(this.textFieldURL.getText()));
     } catch (Exception exc) {
         exc.printStackTrace();
         this.trace(exc.toString(),Log.PRIORITY_ERROR);
@@ -428,7 +449,7 @@ Log log;
         String tok;
         String st=this.infoVPN.stIp;
         try {
-            st=CheckVpn.getMyExternalIp(this.textFieldURL.getText());
+            st=CheckVpn.getURLInfo(this.textFieldURL.getText());
 
             trace("external ip="+st,Log.PRIORITY_INFO);
         } catch (Exception exc) {
@@ -487,15 +508,19 @@ Log log;
         }
     }
 
-    public void vpnOK(String st) {
-        jlbStatus.setText("VPN OK "+st);
+    public void vpnOK(String ip) {
+        jlbStatus.setText("VPN OK "+ip);
         statusPanel.setBackground(Color.green);
         this.bActionOneTime=true;
+        UpdateGeoLoc(ip);
     }
 
     public void vpnKO(String st) {
         jlbStatus.setText("VPN KO "+st);
         statusPanel.setBackground(Color.red);
+        this.jl1.setText("");
+        this.jl2.setText("");
+        this.jl3.setText("");
         
         if (this.bActionOneTime) {
             this.bActionOneTime=false;
@@ -508,6 +533,9 @@ Log log;
     public void vpnStopped() {
         jlbStatus.setText("STOPPED !");
         this.bActionOneTime=true;
+        this.jl1.setText("");
+        this.jl2.setText("");
+        this.jl3.setText("");
         statusPanel.setBackground(Color.red);
     }
     
@@ -531,7 +559,7 @@ Log log;
       System.out.println("initDefaultValue");
       try {
         this.textFieldGap.setText("2");
-        this.textFieldIp.setText(CheckVpn.getMyExternalIp("http://checkip.amazonaws.com"));
+        this.textFieldIp.setText(CheckVpn.getURLInfo("http://checkip.amazonaws.com"));
         this.textFieldURL.setText("http://checkip.amazonaws.com");
         this.textFieldSoft.setText("utorrent.exe;firefox.exe");
         this.jcbAutoStart.setSelected(false);
