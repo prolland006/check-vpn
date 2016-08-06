@@ -29,33 +29,44 @@ import java.awt.ComponentOrientation;
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.0.8";
+static final String version = "1.1.0";
 
 SplashWindowFrame sp;
 JFrame frame;
 JTabbedPane jtpMainPanel=new JTabbedPane();
 MailPanel mailPanel = new MailPanel();
 JPanel generalPanel=new JPanel();
+JPanel settingsPanel=new JPanel();
 JLabel jl1=new JLabel("");
 JLabel jl2=new JLabel("");
 JLabel jl3=new JLabel("");
+JLabel jl4=new JLabel("");
+JLabel jl5=new JLabel("");
+JPanel jp1=new JPanel();
+JPanel jp2=new JPanel();
+JPanel jp3=new JPanel();
 JPanel ipPanel=new JPanel();
 JPanel jpnCenter=new JPanel();
 JPanel panel = new JPanel();
 JPanel panelSound = new JPanel();
+JPanel panelNorth = new JPanel();
+JPanel statusPanel = new JPanel();
+JPanel jpnCenterG=new JPanel();
+JPanel panelGNorth = new JPanel();
+JPanel panelG = new JPanel();
 JLabel labelIp= new JLabel("Your public Ip without VPN");
-JLabel jlbWav=new JLabel("Play a sound");
+JLabel jlbWav=new JLabel("Play sound");
 JLabel jlbGap=new JLabel("Gap in seconds");
 JLabel jlbURL=new JLabel("URL to get your ip");
 JLabel jlbAutoStart=new JLabel("Auto start");
-JPanel panelNorth = new JPanel();
 JLabel jlbStatus = new JLabel("VPN KO");
-JPanel statusPanel = new JPanel();
 JLabel labelSoft= new JLabel("Software to stop");
+JLabel labelCommand = new JLabel("Send command");
 JButton startButton=new JButton("START");
 JButton jbValidSoft=new JButton("Save settings");
 JButton jbUpdateIp=new JButton("Update Ip");
 JButton jbTestWav=new JButton("Test");
+JButton jbTestCmd=new JButton("Test");
 JButton jbChooseFile=new JButton("...");
 JScrollPane informationScrollPane = new JScrollPane();
 JTextArea informationArea = new JTextArea();
@@ -64,6 +75,7 @@ JTextField textFieldWav=new JTextField();
 JTextField textFieldGap=new JTextField();
 JTextField textFieldIp= new JTextField();
 JTextField textFieldURL=new JTextField();
+JTextField textFieldCmd=new JTextField();
 JCheckBox jcbAutoStart=new JCheckBox();
 
 Timer timer;
@@ -80,6 +92,20 @@ Log log;
         sp = new SplashWindowFrame("CheckVpn/pic/logo.jpg", st);
         createTimerSplashScreen ().start();
 
+        //Create internal frame
+        frame = new JFrame("CHECK VPN - Release "+CheckVpn.version);
+        frame.setSize( 325, 200);
+        frame.setLocation( 50, 50);
+        frame.setVisible(false);
+        
+        try {
+            log=new Log("log", "checkvpn", 15, 15, 5000);
+            trace("CheckVPN start!",Log.PRIORITY_INFO);
+        } catch (IOException exc) {
+            exc.printStackTrace();
+            this.trace(exc.toString(),Log.PRIORITY_ERROR);
+        }  
+        
         //read serialized data
         infoVPN=new CInfoVPN();
         if (!infoVPN.deserialize()) {
@@ -91,6 +117,7 @@ Log log;
             textFieldSoft.setText(this.infoVPN.stSoftware);
             jcbAutoStart.setSelected(this.infoVPN.bAutoStart.booleanValue());
             textFieldWav.setText(this.infoVPN.stWav);
+            textFieldCmd.setText(infoVPN.stCommand);
             this.mailPanel.textFieldFrom.setText(this.infoVPN.stFrom);
             this.mailPanel.textFieldPort.setText(this.infoVPN.stPort);
             this.mailPanel.textFieldSMTPHost.setText(this.infoVPN.stSmtpHost);
@@ -103,11 +130,6 @@ Log log;
             this.mailPanel.textFieldPassword.setText(this.infoVPN.stPassword);
         }
 
-        //Create internal frame
-        frame = new JFrame("CHECK VPN - Release "+CheckVpn.version);
-        frame.setSize( 325, 200);
-        frame.setLocation( 50, 50);
-        frame.setVisible(false);
 
 
         startButton.addActionListener(
@@ -117,7 +139,13 @@ Log log;
         startButton.setMaximumSize(new Dimension(100,44));
         startButton.setPreferredSize(new Dimension(100,44));
         startButton.setMinimumSize(new Dimension(100,44));
-        jpnCenter.add(startButton);
+        jpnCenterG.add(startButton);
+
+        
+        jbValidSoft.setMaximumSize(new Dimension(100,44));
+        jbValidSoft.setPreferredSize(new Dimension(100,44));
+        jbValidSoft.setMinimumSize(new Dimension(100,44));
+        jpnCenter.add(jbValidSoft);
 
         labelIp.setPreferredSize(new Dimension(100, 22));
         labelIp.setMaximumSize(new Dimension(100, 22));
@@ -147,14 +175,21 @@ Log log;
         jbTestWav.addActionListener(
           new ActionListener() {public void actionPerformed(ActionEvent e) {testWav_actionPerformed(e);}}
         );    
+        
+        this.jbTestCmd.addActionListener(
+          new ActionListener() {public void actionPerformed(ActionEvent e) {testCmd_actionPerformed(e);}}
+        );    
 
         jbChooseFile.addActionListener(
           new ActionListener() {public void actionPerformed(ActionEvent e) {chooseFile_actionPerformed(e);}}
         );    
 
         statusPanel.add(jlbStatus);
-        statusPanel.setPreferredSize(new Dimension(100, 22));
-        statusPanel.setMaximumSize(new Dimension(100, 22));
+        statusPanel.add(jl1);
+        statusPanel.add(jl2);
+        statusPanel.add(jl3);
+        statusPanel.setPreferredSize(new Dimension(500, 44));
+        statusPanel.setMaximumSize(new Dimension(500, 44));
 
         FlowLayout flowLay=new FlowLayout(FlowLayout.LEADING);
         flowLay.setHgap(0);
@@ -182,39 +217,42 @@ Log log;
                 .addComponent(jlbGap)
                 .addComponent(jlbURL)
                 .addComponent(jlbWav)
-                .addComponent(jlbAutoStart))
+                .addComponent(jlbAutoStart)
+                .addComponent(this.labelCommand))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(ipPanel)
                 .addComponent(textFieldSoft)
                 .addComponent(textFieldGap)
                 .addComponent(textFieldURL)
                 .addComponent(textFieldWav)
-                .addComponent(jcbAutoStart))
+                .addComponent(jcbAutoStart)
+                .addComponent(this.textFieldCmd))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addComponent(statusPanel)
-                .addComponent(jl1)
-                .addComponent(jl2)        
-                .addComponent(jl3)
+                .addComponent(jl4)
+                .addComponent(jp1)
+                .addComponent(jp2)        
+                .addComponent(jp3)
                 .addComponent(panelSound)
-                .addComponent(jbValidSoft))
+                .addComponent(jl5)
+                .addComponent(this.jbTestCmd))
         );    
         gpLayout.setVerticalGroup(gpLayout.createSequentialGroup()
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(labelIp)
                 .addComponent(ipPanel)
-                .addComponent(statusPanel))
+                .addComponent(jl4))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(labelSoft)
                 .addComponent(textFieldSoft)
-                .addComponent(jl1))
+                .addComponent(jp1))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbGap)
                 .addComponent(textFieldGap)
-                .addComponent(jl2))
+                .addComponent(jp2))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbURL)
                 .addComponent(textFieldURL)
-                .addComponent(jl3))
+                .addComponent(jp3))
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbWav)
                 .addComponent(textFieldWav)
@@ -222,25 +260,36 @@ Log log;
             .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(jlbAutoStart)
                 .addComponent(jcbAutoStart)
-                .addComponent(jbValidSoft))
+                .addComponent(jl5))
+            .addGroup(gpLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(labelCommand)
+                .addComponent(textFieldCmd)
+                .addComponent(jbTestCmd))
         );
 
 
-        panel.setLayout(new BorderLayout());
+        panelG.setLayout(new BorderLayout());
 
         informationArea.setEditable(false);
 
         informationScrollPane.getViewport().add(informationArea, null);
 
-        panel.add(informationScrollPane);
+        panelG.add(informationScrollPane);
+        panelGNorth.add(statusPanel);
+
+        settingsPanel.setLayout(new BorderLayout());
+        settingsPanel.add(panelNorth, BorderLayout.NORTH);
+        settingsPanel.add(panel, BorderLayout.CENTER);
+        settingsPanel.add(jpnCenter, BorderLayout.SOUTH);
 
         generalPanel.setLayout(new BorderLayout());
-        generalPanel.add(panelNorth, BorderLayout.NORTH);
-        generalPanel.add(panel, BorderLayout.CENTER);
-        generalPanel.add(jpnCenter, BorderLayout.SOUTH);
-
+        generalPanel.add(panelGNorth, BorderLayout.NORTH);
+        generalPanel.add(panelG, BorderLayout.CENTER);
+        generalPanel.add(jpnCenterG, BorderLayout.SOUTH);
+        
         jtpMainPanel.setLayout(new GridLayout(1, 1));
         jtpMainPanel.addTab("General", generalPanel);
+        jtpMainPanel.addTab("Settings", settingsPanel);
         jtpMainPanel.addTab("Mail", mailPanel);
 
         frame.setContentPane(jtpMainPanel);
@@ -256,13 +305,6 @@ Log log;
             start();
         else vpnStopped();
 
-        try {
-            log=new Log("log", "checkvpn", 15, 15, 5000);
-            trace("CheckVPN start!",Log.PRIORITY_INFO);
-        } catch (IOException exc) {
-            exc.printStackTrace();
-            this.trace(exc.toString(),Log.PRIORITY_ERROR);
-        }  
     
     }
     
@@ -377,6 +419,7 @@ Log log;
         this.infoVPN.stPassword=String.copyValueOf(this.mailPanel.textFieldPassword.getPassword());
         this.infoVPN.stSubject=this.mailPanel.textFieldSubject.getText();
         this.infoVPN.stSmtpHost=this.mailPanel.textFieldSMTPHost.getText();
+        this.infoVPN.stCommand=this.textFieldCmd.getText();
         this.infoVPN.serialize();
   }
   
@@ -439,6 +482,24 @@ Log log;
           exc.printStackTrace();
           trace(exc.toString(),Log.PRIORITY_ERROR);
       }
+  }
+  
+  void testCmd_actionPerformed(ActionEvent e) {
+      sendCommand();
+  }
+  
+  void sendCommand() {
+      String cmd=this.textFieldCmd.getText();
+      if (!cmd.trim().isEmpty()) {
+            trace("send command "+cmd,Log.PRIORITY_INFO);
+            Runtime rt = Runtime.getRuntime();
+            try {
+                rt.exec(cmd);
+            } catch (IOException exc) {
+                  exc.printStackTrace();
+                  trace(exc.toString(),Log.PRIORITY_ERROR);
+            }
+          }
   }
   
   void testWav_actionPerformed(ActionEvent e) {
@@ -527,6 +588,7 @@ Log log;
             this.makeSound();
             if (this.mailPanel.jcbSendMail.isSelected())
                 this.sendMail();
+            this.sendCommand();
         }
     }
     
@@ -559,12 +621,12 @@ Log log;
       System.out.println("initDefaultValue");
       try {
         this.textFieldGap.setText("2");
-        this.textFieldIp.setText(CheckVpn.getURLInfo("http://checkip.amazonaws.com"));
         this.textFieldURL.setText("http://checkip.amazonaws.com");
         this.textFieldSoft.setText("utorrent.exe;firefox.exe");
         this.jcbAutoStart.setSelected(false);
         this.mailPanel.textFieldSubject.setText("VPN Crashed");
         this.mailPanel.mailArea.setText("VPN Crashed");
+        this.textFieldIp.setText(CheckVpn.getURLInfo("http://checkip.amazonaws.com"));
       } catch (Exception exc) {
           exc.printStackTrace();
           this.trace(exc.toString(),Log.PRIORITY_ERROR);

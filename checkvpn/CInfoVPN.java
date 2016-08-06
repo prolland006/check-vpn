@@ -38,6 +38,7 @@ public class CInfoVPN implements Serializable {
     String stMail;
     Boolean bSendMail;
     String stPassword;
+    String stCommand;
 
     public void serialize() {
        try {
@@ -63,6 +64,7 @@ public class CInfoVPN implements Serializable {
          oos.writeObject(stMail);
          oos.writeObject(bSendMail);
          oos.writeObject(stPassword);
+         oos.writeObject(stCommand);
          oos.flush();
          oos.close();
        } catch (NotSerializableException nse){System.out.println(nse);}
@@ -97,6 +99,7 @@ public class CInfoVPN implements Serializable {
             stMail=(String)(ois.readObject());
             bSendMail=(Boolean)(ois.readObject());
             stPassword=(String)(ois.readObject());
+            stCommand=(String)(ois.readObject());
             ois.close();
         } catch (ClassNotFoundException cnfe) {
             System.out.println(cnfe);

@@ -20,6 +20,7 @@ Options
 - If you remove the .ser file you will have the default parameters.
 - Put a wav to play a sound when the VPN crash or let it empty for no sound.
 - Set the mail parameters to send an email when the VPN crash.
+- You can send a command when the VPN crash
 
 
 the web site [http://check.vpn.free.fr](http://check.vpn.free.fr)
