@@ -25,11 +25,14 @@ import java.util.StringTokenizer;
 import CheckVpn.common.SplashWindowFrame;
 import CheckVpn.common.Log;
 import java.awt.ComponentOrientation;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+import org.json.simple.parser.JSONParser;
 
 /////////////////////////////////////////////////////////////////////////////////
 public class CheckVpn {
     
-static final String version = "1.1.0";
+static final String version = "1.1.1";
 
 SplashWindowFrame sp;
 JFrame frame;
@@ -84,7 +87,7 @@ CInfoVPN infoVPN;
 boolean bActionOneTime=true;
 
 Log log;
-
+String oldIp="!!"; //save the olg ip for geoloc
 
 /////////////////////////////////////////////////////////////////////////////////
     public CheckVpn() {
@@ -309,8 +312,27 @@ Log log;
     }
     
     public void UpdateGeoLoc(String ip) {
+        if (oldIp.compareTo(ip)==0)return; //to avoid to do twice
         try {
-            String city=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=city");
+            JSONParser parser = new JSONParser();
+            
+            String stJson=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=json");
+            trace("geoloc="+stJson,Log.PRIORITY_INFO);
+            Object obj = parser.parse(stJson);
+            JSONObject jsonObj=(JSONObject)obj;
+            String city=jsonObj.get("city").toString();
+            trace("city="+city,Log.PRIORITY_INFO);
+            jl1.setText(city);
+            String subName=jsonObj.get("subName").toString();
+            trace("subName="+city,Log.PRIORITY_INFO);
+            jl2.setText(subName);
+            String country=jsonObj.get("country").toString();
+            trace("country="+country,Log.PRIORITY_INFO);
+            jl3.setText(country);
+            oldIp=ip;
+
+
+            /*String city=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=city");
             trace("city="+city,Log.PRIORITY_INFO);
             jl1.setText(city);
             
@@ -320,8 +342,11 @@ Log log;
 
             String country=getURLInfo("http://nice-informatique-service.fr/geoip_service/geoip_service.php?ip="+ip+"&data=country");
             trace("country="+country,Log.PRIORITY_INFO);
-            jl3.setText(country);
+            jl3.setText(country);*/
             
+      }catch(ParseException pe){
+            this.trace("error parsing json geoloc ! position: " + Integer.toString(pe.getPosition()),Log.PRIORITY_WARNING);
+            this.trace("error parsing json geoloc !" + pe,Log.PRIORITY_WARNING);
         } catch (Exception exc) {
             exc.printStackTrace();
             this.trace(exc.toString(),Log.PRIORITY_WARNING);            
@@ -339,11 +364,7 @@ Log log;
             return st;
         } finally {
             if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                in.close();
             }
         }
     }
