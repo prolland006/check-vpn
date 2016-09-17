@@ -7,7 +7,7 @@ Requirements
 ------------
 - This tool work on Windows and Linux.
 - You need to install JAVA 1,8 on your operating system
-Setting
+Settings
 -------
 - Download the .zip and unzip it
 - Double click on checkvpn.jar
