@@ -2,6 +2,11 @@
 ## Summary
 This tool check every x seconds your public ip adress, if it changes (vpn fall down for example) it stops one or several programs. When the VPN crash this tool can send a mail, play a sound.
 
+![check vpn](http://check.vpn.free.fr/pic/screenshot1.jpg)
+![check vpn](http://check.vpn.free.fr/pic/screenshot2.jpg)
+![check vpn](http://check.vpn.free.fr/pic/screenshot3.jpg)
+![check vpn](http://check.vpn.free.fr/pic/screenshot4.jpg)
+
 ## Requirements
 - This tool work on Windows and Linux.
 - You need to install JAVA 1,8 on your operating system
@@ -21,4 +26,5 @@ This tool check every x seconds your public ip adress, if it changes (vpn fall d
 - You can send a command when the VPN crash
 
 
-the web site [http://check.vpn.free.fr](http://check.vpn.free.fr)
+The web site [http://check.vpn.free.fr](http://check.vpn.free.fr)
+Download from sourceforge [http://check-vpn.sourceforge.net](Download the jar on sourceforge.net...)
