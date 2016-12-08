@@ -529,19 +529,19 @@ String oldIp="!!"; //save the olg ip for geoloc
   
   void Timer_actionPerformed(ActionEvent e) {
         String tok;
-        String st=this.infoVPN.stIp;
+        String ip=this.infoVPN.stIp;
         try {
-            st=CheckVpn.getURLInfo(this.textFieldURL.getText());
+            ip=CheckVpn.getURLInfo(this.textFieldURL.getText());
 
-            trace("external ip="+st,Log.PRIORITY_INFO);
+            trace("external ip="+ip,Log.PRIORITY_INFO);
         } catch (Exception exc) {
             exc.printStackTrace();
             trace(exc.toString(),Log.PRIORITY_ERROR);
         }
                     
-        if (st.compareTo(this.infoVPN.stIp)==0) {
-            this.vpnKO(st);
-            trace(" VPN KO",Log.PRIORITY_INFO);
+        if (ip.compareTo(this.infoVPN.stIp)==0) {
+            this.vpnKO(ip);
+            trace("*** VPN KO exec some process ***",Log.PRIORITY_INFO);
             Runtime rt = Runtime.getRuntime();
             StringTokenizer s = new StringTokenizer(this.infoVPN.stSoftware,";");
             while (s.hasMoreTokens()) {
@@ -560,7 +560,7 @@ String oldIp="!!"; //save the olg ip for geoloc
             }
         } else {
             trace(" VPN OK",Log.PRIORITY_INFO);
-            this.vpnOK(st);
+            this.vpnOK(ip);
         }
   }
   
@@ -591,14 +591,16 @@ String oldIp="!!"; //save the olg ip for geoloc
     }
 
     public void vpnOK(String ip) {
+        trace("VPN OK "+ip, Log.PRIORITY_INFO);
         jlbStatus.setText("VPN OK "+ip);
         statusPanel.setBackground(Color.green);
         this.bActionOneTime=true;
         UpdateGeoLoc(ip);
     }
 
-    public void vpnKO(String st) {
-        jlbStatus.setText("VPN KO "+st);
+    public void vpnKO(String ip) {
+        trace("VPN KO "+ip, Log.PRIORITY_INFO);
+        jlbStatus.setText("VPN KO "+ip);
         statusPanel.setBackground(Color.red);
         this.jl1.setText("");
         this.jl2.setText("");
